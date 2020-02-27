@@ -111,7 +111,12 @@ RCT_EXPORT_MODULE()
 
   _paused = YES;
   _timers = [NSMutableDictionary new];
-  _inBackground = NO;
+//  _inBackground = NO;
+    if([[UIApplication sharedApplication] applicationState]!=UIApplicationStateActive){
+      _inBackground =YES;
+    }else{
+      _inBackground = NO;
+    }
 
   for (NSString *name in @[UIApplicationWillResignActiveNotification,
                            UIApplicationDidEnterBackgroundNotification,
@@ -129,8 +134,23 @@ RCT_EXPORT_MODULE()
                                                  name:name
                                                object:nil];
   }
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+    selector:@selector(proximityChanged)
+    name:UIDeviceProximityStateDidChangeNotification
+    object:nil];
 
   _bridge = bridge;
+}
+
+-(void)proximityChanged
+{
+  BOOL state = [UIDevice currentDevice].proximityState;
+  if(state==YES){
+    [self appDidMoveToBackground];
+  }else{
+    [self appDidMoveToForeground];
+  }
 }
 
 - (void)dealloc
